@@ -11,12 +11,23 @@
  * 7、成功时可以传入成功的值，失败时可以传入失败的原因
  */
 
+const { resolve } = require("./promise");
+const Promise = require("./promise");
+
 // let Promise = require("./promise");
 let promise = new Promise((resolve, reject) => {
   resolve(new Promise((resolve, reject) => {
     resolve('resolve中的promise的resolve');
   }));
 });
+
+Promise.resolve(new Promise((resolve, reject) =>{
+  setTimeout(() => {
+    resolve('ok')
+  }, 1000);
+})).then(data =>{
+  console.log(data);
+})
 
 let p1 = promise.then(
   (val) => {

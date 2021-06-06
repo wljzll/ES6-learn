@@ -1,7 +1,7 @@
 /**
- * Promise是一个类，需要new这个类型
+ * Promise是一个类，需要new这个类
  * 
- * 1、executor 执行器 默认会立即执行
+ * 1、executor 执行器 在new 创建实例时默认会立即执行
  * 2、默认promise的状态是等待状态(三个状态 等待 成功 失败)
  * 3、当调用resolve时 会变成成功状态；调用reject 会变成失败状态
  * 4、返回的实例上有一个then方法，then中需要提供两个参数，分别是
@@ -17,6 +17,7 @@ let promise = new Promise((resolve, reject) =>{
     setTimeout(() => {
         resolve('ok!');
     }, 1000);
+    resolve('ok!');
 })
 
 promise.then(val => {

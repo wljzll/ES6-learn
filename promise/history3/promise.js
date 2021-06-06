@@ -1,3 +1,6 @@
+// 实现then链-即then方法中返回新的promise实例并实现穿透的效果，以及如何测试我们
+// 实现的Promise是否符合规范
+
 /**
  * then的使用方式：
  * 1、then中的回调有两个方法，成功或者失败，他们返回的结果(普通值)会传递给外层的下一个then中
@@ -13,7 +16,7 @@ const ENUM = {
 /**
  * 根据上一个then方法的返回值决定返回的promise2的状态
  * @param {*} x 上一个then的返回值 可能是简单类型 也可能是Object、Function、Promise等
- * @param {*} promise2 上一个then方法返回的promise
+ * @param {*} promise2 then方法返回的 第二个promise实例
  * @param {*} resovle 上一个then方法返回的promise的resolve函数
  * @param {*} reject 上一个then方法返回的promise的reject函数
  */
@@ -22,7 +25,7 @@ function resovlePromise(x, promise2, resovle, reject) {
 
   // 可能会在第一个promise中返回promise2造成循环引用
   if (x === promise2) {
-    reject(`TypeError: Chaining cycle detected for promise #<Promise>`)
+    reject(new TypeError('Chaining cycle detected for promise #<Promise>'))
   }
 
   // 如果x是一个promise 那么就采用它的状态
@@ -39,6 +42,7 @@ function resovlePromise(x, promise2, resovle, reject) {
       // 有then说明是一个promise
       if (typeof then == 'function') {
         // 通过call方法调用 x的then方法 为了防止二次取值报错，所以不直接用x.then
+        // call第一个参数是x 因为 x.then
         then.call(x, y => {
           if (called) return;
           called = true;
@@ -50,6 +54,7 @@ function resovlePromise(x, promise2, resovle, reject) {
           reject(r);
         })
       } else { // 不是promise直接resolve
+        // 直接将promise2 reslove
         resovle(x);
       }
     } catch (error) {
@@ -64,6 +69,7 @@ function resovlePromise(x, promise2, resovle, reject) {
   }
 
 }
+
 class Promise {
   constructor(executor) {
     this.status = ENUM.PENDING;
@@ -95,14 +101,20 @@ class Promise {
     // 实现穿透效果
     onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : v => v;
     onRejected = typeof onRejected === 'function' ? onRejected : err => { throw err };
+
     let promise2 = new Promise((resovle, reject) => {
+      // 如果初始的promise resolve了
       if (this.status === ENUM.FULFILLED) {
+        // 放到setTimeout中是因为resovlePromise时取不到promise2
         setTimeout(() => {
           try {
+            // 获取初始的promise then中成功的函数参数的执行返回的结果
+            // x then中成功的函数参数的执行的返回值
             let x = onFulfilled(this.value);
             // 在这里去处理promise2的状态 
             resovlePromise(x, promise2, resovle, reject);
           } catch (error) {
+            // 如果执行报错 直接执行第二个promise的reject
             reject(error);
           }
         }, 0);
@@ -140,7 +152,22 @@ class Promise {
         });
       }
     });
+
+    // 返回一个新的promise实例
     return promise2;
   }
 }
+
+
+Promise.defer = Promise.deferred = function () {
+  let dfd = {};
+  dfd.promise = new Promise((resolve, reject) => {
+    dfd.resolve = resolve;
+    dfd.reject = reject;
+  }) 
+  return dfd;
+}
+
+// npm i promises-aplus-tests -g
+// promises-aplus-tests promise.js
 module.exports = Promise;

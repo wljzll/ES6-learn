@@ -20,7 +20,8 @@ const ENUM = {
 function resovlePromise(x, promise2, resovle, reject) {
   // 根据x(上一个promise then方法的返回值)来解析promise2是成功还是失败
   if (x === promise2) {
-    reject(`TypeError: Chaining cycle detected for promise #<Promise>`)
+    // 这里必须要这样抛异常才能通过测试
+    reject(new TypeError('Chaining cycle detected for promise #<Promise>'))
   }
 
   // 如果x是一个promise 那么就采用它的状态
@@ -69,7 +70,9 @@ class Promise {
     const resovle = (value) => {
       // 调用Promise.resolve时，如果value是一个Promise
       if (value instanceof Promise) {
-        value.then(resovle, reject);
+        // 递归解析 当Promise.resolve()传入的Promise被
+        // 当执行这个then时，说明传入逇Promise被resolve了，就可以完成Promise.resolve这个Promise的resolve了
+        return value.then(resovle, reject);
       }
       if (this.status === "PENDING") {
         this.status = ENUM.FULFILLED;
@@ -91,7 +94,7 @@ class Promise {
     }
   }
   then(onFulfilled, onRejected) {
-    // 实现穿透效果
+    // 实现穿透效果 如果中间某个then没有传递成功的函数参数我们就给个默认函数：直接返回上一个then的返回值 就相当于一个中间商
     onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : v => v;
     onRejected = typeof onRejected === 'function' ? onRejected : err => { throw err };
     let promise2 = new Promise((resovle, reject) => {
@@ -145,7 +148,9 @@ class Promise {
 
   }
   static resolve(val) {
+    // 这时这个val可能是Promise
     return new Promise((resolve, reject) => {
+      // 在执行这个resolve时，要依据val看是否resolve
       resolve(val);
     })
   }
@@ -155,4 +160,14 @@ class Promise {
     })
   }
 }
+
+Promise.defer = Promise.deferred = function () {
+  let dfd = {};
+  dfd.promise = new Promise((resolve, reject) => {
+    dfd.resolve = resolve;
+    dfd.reject = reject;
+  }) 
+  return dfd;
+}
+
 module.exports = Promise;
