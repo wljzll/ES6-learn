@@ -43,10 +43,17 @@ function resovlePromise(x, promise2, resovle, reject) {
       if (typeof then == 'function') {
         // 通过call方法调用 x的then方法 为了防止二次取值报错，所以不直接用x.then
         // call第一个参数是x 因为 x.then
+        // 执行x的then方法时，说明x所属的Promise已经被resolve了
         then.call(x, y => {
           if (called) return;
           called = true;
           //then方法里resolve的这个y 也可能是一个promise，这时候promise2的状态就由这个y来决定
+          // 递归解析 直到Promise的x是一个普通值 当执行then方法时，说明这个Promise被resolve了，就可以执行promise2的resolve了
+          /**
+           * y这时可能时Promise，也可能是普通值
+           * 1、Promise：交给resovlePromise递归处理，直到某个Promise resolve的是个普通值 则将promise2 resolve
+           * 2、普通值直接resolve 
+           */
           resovlePromise(y, promise2, resovle, reject);
         }, r => {
           if (called) return;
@@ -111,10 +118,10 @@ class Promise {
             // 获取初始的promise then中成功的函数参数的执行返回的结果
             // x then中成功的函数参数的执行的返回值
             let x = onFulfilled(this.value);
-            // 在这里去处理promise2的状态 
+            // 在这里去处理promise2 什么时候去resolve
             resovlePromise(x, promise2, resovle, reject);
           } catch (error) {
-            // 如果执行报错 直接执行第二个promise的reject
+            // 如果执行报错 直接执行 promise2 的reject
             reject(error);
           }
         }, 0);
@@ -168,6 +175,7 @@ Promise.defer = Promise.deferred = function () {
   return dfd;
 }
 
-// npm i promises-aplus-tests -g
-// promises-aplus-tests promise.js
+// 如何测试我们的 Promise 是否符合规范
+// 1、全局安装：npm i promises-aplus-tests -g
+// 2、执行Promise文件：promises-aplus-tests promise.js
 module.exports = Promise;

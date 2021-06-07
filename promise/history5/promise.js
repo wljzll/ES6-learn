@@ -1,8 +1,9 @@
-// 实现 all方法
+// 实现 finally方法
 /**
- * all:
- * 1) 所有传入的Promise成功，才会成功
- * 2) 有一个Promise失败就失败
+ * finally: 
+ * 1) 无论Promise成功失败都会执行finally
+ * 2) finally中可以返回一个Promise，那么需要等待finally中的Promise执行完毕后，
+ *    才会resolve最外层的Promise
  */
 const ENUM = {
   PENDING: "PENDING",

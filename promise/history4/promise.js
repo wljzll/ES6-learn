@@ -1,8 +1,10 @@
-// 实现 all方法
+// 实现catch方法、resolve/reject静态方法
 /**
- * all:
- * 1) 所有传入的Promise成功，才会成功
- * 2) 有一个Promise失败就失败
+ * then的使用方式：
+ * 1、then中的回调有两个方法，成功或者失败，他们返回的结果(普通值)会传递给外层的下一个then中
+ * 2、可以在成功和失败中抛出异常，会走到下一个then的失败中
+ * 3、返回值是一个promise，那么会用这个promise的状态作为结果，会用promise的结果向下传递
+ * 4、错误处理 是默认先找离自己最近的错误处理，找不到向下查找，找到后执行
  */
 const ENUM = {
   PENDING: "PENDING",
@@ -97,7 +99,6 @@ class Promise {
     onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : v => v;
     onRejected = typeof onRejected === 'function' ? onRejected : err => { throw err };
     let promise2 = new Promise((resovle, reject) => {
-      // console.log('promise2');
       if (this.status === ENUM.FULFILLED) {
         setTimeout(() => {
           try {
@@ -108,11 +109,9 @@ class Promise {
           }
         }, 0);
       }
-  
       if (this.status === ENUM.REJECTED) {
         setTimeout(() => {
           try {
-            // console.log(onRejected);
             let x = onRejected(this.reason);
             resovlePromise(x, promise2, resovle, reject);
           } catch (error) {
@@ -147,30 +146,20 @@ class Promise {
   }
   catch(errorCallback) {
     return this.then(null, errorCallback);
+
   }
   static resolve(val) {
-    // resolve方法返回一个新的Promise
+    // 这时这个val可能是Promise
     return new Promise((resolve, reject) => {
-      // 这时这个val可能是Promise 在执行这个resolve时，要依据val看是否resolve
+      // 在执行这个resolve时，要依据val看是否resolve
       resolve(val);
     })
   }
   static reject(reason) {
-    // reject方法返回一个新的Promise
     return new Promise((resolve, reject) => {
       reject(reason);
     })
   }
-}
-Promise.prototype.finally = function (callback) {
-  // this => 调用finally方法的Promise 
-  // this.then => 是为了拿到调用finally方法的Promise的reslove/reject的值，传递下去
-  return this.then(value => {
-    // 将调用finally的Promise的reslove的value值返回 传入到finally后的then中
-    return Promise.resolve(callback()).then(() => value)
-  }, (err) => {
-    return Promise.resolve(callback()).then(() => {throw err})
-  })
 }
 
 Promise.defer = Promise.deferred = function () {
