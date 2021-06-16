@@ -61,12 +61,22 @@ function resovlePromise(x, promise2, resovle, reject) {
 
 }
 class Promise {
+  /**
+   * new Promise时传入的函数参数 立即执行 在executor中处理这个Promise的状态
+   * @param {*} executor 
+   */
   constructor(executor) {
+    // 此Promise实例的状态
     this.status = ENUM.PENDING;
+    // 保存resolve传入的值
     this.value = null;
+    // 保存reject传入的失败的原因
     this.reason = null;
+    // 保存then中传入的成功的回调
     this.onFulfilledCallbacks = [];
+    // 保存then中传入的失败的回调
     this.onRejectedCallbacks = [];
+    // executor的resolve函数参数
     const resovle = (value) => {
       // 调用Promise.resolve时，如果value是一个Promise
       if (value instanceof Promise) {
@@ -74,14 +84,15 @@ class Promise {
         // 当执行这个then时，说明传入逇Promise被resolve了，就可以完成Promise.resolve这个Promise的resolve了
         return value.then(resovle, reject);
       }
-      if (this.status === "PENDING") {
+      if (this.status === "PENDING") { // 确保只执行一次
         this.status = ENUM.FULFILLED;
         this.value = value;
         this.onFulfilledCallbacks.forEach((fn) => fn());
       }
     };
+    // executor的reject函数参数
     const reject = (reason) => {
-      if (this.status === "PENDING") {
+      if (this.status === "PENDING") { // 确保只执行一次
         this.status = ENUM.REJECTED;
         this.reason = reason;
         this.onRejectedCallbacks.forEach((fn) => fn());
@@ -89,7 +100,7 @@ class Promise {
     };
     try {
       executor(resovle, reject);
-    } catch (error) {
+    } catch (error) { // 如果executor执行报错，直接将当前Promise reject
       reject(error);
     }
   }
@@ -167,7 +178,7 @@ Promise.prototype.finally = function (callback) {
   // this => 调用finally方法的Promise 
   // this.then => 是为了拿到调用finally方法的Promise的reslove/reject的值，传递下去
   return this.then(value => {
-    // 将调用finally的Promise的reslove的value值返回 传入到finally后的then中
+    // 将调用finally的Promise的reslove的value值返回 传入到finally后的then中 then方法返回的也是一个Promise
     return Promise.resolve(callback()).then(() => value)
   }, (err) => {
     return Promise.resolve(callback()).then(() => {throw err})
