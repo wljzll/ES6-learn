@@ -174,6 +174,7 @@ class Promise {
     return new Promise((resolve, reject) => {
       let resultArr = [];
       let orderIndex = 0;
+
       function processResultByKey(value, index) {
         // 不使用push是为了按照顺序组织返回结果
         resultArr[index] = value;
@@ -182,6 +183,7 @@ class Promise {
           resolve(resultArr);
         }
       }
+
       for (let i = 0; i < values.length; i++) {
         let value = values[i];
         if (value && typeof value.then === "function") {
@@ -194,6 +196,7 @@ class Promise {
           processResultByKey(value, i);
         }
       }
+      
     });
   }
 }

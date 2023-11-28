@@ -13,19 +13,35 @@
 
 let Promise = require('./promise');
 let promise = new Promise((resolve, reject) =>{
-    console.log('123');
     setTimeout(() => {
-        resolve('ok!');
+        reject('ok!');
     }, 1000);
 })
 
 promise.then(val => {
     console.log('success===', val);
+    return '第一个then成功回调的返回值'
 }, reason => {
     console.log('err===', reason);
+    return '第一个then错误回调的返回值'
 })
-promise.then(val => {
-    console.log('success===', val);
-}, reason => {
-    console.log('err===', reason);
-})
+// .then(val => {
+//     console.log('success===', val);
+// }, reason => {
+//     console.log('err===', reason);
+// })
+
+/**
+ * 1. Promise类接受一个回调函数作为参数, Promise在内部执行这个回调函数的时候
+ *    会给这个回调函数传递两个参数 resolve/reject, 使用者自行决定这个Promise
+ *    实例是成功还是失败
+ * 
+ * 2. 当执行Promise实例的then方法时, 需要给then方法传递两个参数, Promise实例
+ *    resolve时执行的回调, Promise实例reject时执行的回调, then方法执行时, 
+ *    如果Promise实例已经resolve或reject了就会立即执行对应的回调并将resolve/reject
+ *    的参数传递个相应的回调, 如果此时Promise实例还是pending, 那么对应的回调会在
+ *    resolve/reject时执行
+ * 
+ * 3. then方法执行会返回一个新的Promise实例: 如果then的成功或失败的回调返回一个非
+ *    Promise实例, 那么then方法返回的Promise实例会立即resolve
+ */

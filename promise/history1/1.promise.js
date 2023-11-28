@@ -12,6 +12,11 @@
  */
 
 let Promise = require('./promise');
+
+/**
+ * 1. Promise类的参数是一个函数 
+ * 2. Promise在内部执行的时候会给这个函数传递两个参数: resolve/reject
+ */
 let promise = new Promise((resolve, reject) =>{
     console.log('123');
     setTimeout(() => {

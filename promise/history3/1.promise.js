@@ -35,23 +35,23 @@ promise2.then(null, (error) => {
 });
 
 
-// 情况3：promise1的then方法返回的promise可能resolve了一个promise
-let promise1 = new Promise((resovle, reject) => {
-  resovle('ok!');
-});
+// // 情况3：promise1的then方法返回的promise可能resolve了一个promise
+// let promise1 = new Promise((resovle, reject) => {
+//   resovle('ok!');
+// });
 
 
-let promise2 = promise1.then(() => {
-  return new Promise((resolve, reject) => {
-     resolve(new Promise((resolve, reject)=> {
-       resovle('123');
-     })); 
-  }).then((y) => {
+// let promise2 = promise1.then(() => {
+//   return new Promise((resolve, reject) => {
+//      resolve(new Promise((resolve, reject)=> {
+//        resovle('123');
+//      })); 
+//   }).then((y) => {
 
-  }, (r) => {
+//   }, (r) => {
 
-  });
-});
+//   });
+// });
 
 promise2.then(null, (error) => {
   console.log(error);

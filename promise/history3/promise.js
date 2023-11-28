@@ -15,7 +15,7 @@ const ENUM = {
 };
 /**
  * 根据上一个then方法的返回值决定返回的promise2的状态
- * @param {*} x 上一个then的返回值 可能是简单类型 也可能是Object、Function、Promise等
+ * @param {*} x 上一个then的成功/失败的回调的返回值 可能是简单类型 也可能是Object、Function、Promise等
  * @param {*} promise2 then方法返回的 第二个promise实例
  * @param {*} resovle 上一个then方法返回的promise的resolve函数
  * @param {*} reject 上一个then方法返回的promise的reject函数
@@ -43,8 +43,8 @@ function resovlePromise(x, promise2, resovle, reject) {
       if (typeof then == 'function') {
         // 通过call方法调用 x的then方法 为了防止二次取值报错，所以不直接用x.then
         // call第一个参数是x 因为 x.then
-        // 执行x的then方法时，说明x所属的Promise已经被resolve了
-        then.call(x, y => {
+        // 执行x的then方法时，说明x所属的Promise已经被resolve了 ？？？？？？？？
+        then.call(x, /** 成功的回调 */y => {
           if (called) return;
           called = true;
           //then方法里resolve的这个y 也可能是一个promise，这时候promise2的状态就由这个y来决定
@@ -55,7 +55,7 @@ function resovlePromise(x, promise2, resovle, reject) {
            * 2、普通值直接resolve 
            */
           resovlePromise(y, promise2, resovle, reject);
-        }, r => {
+        }, /** 失败的回调 */r => {
           if (called) return;
           called = true;
           reject(r);
@@ -71,7 +71,7 @@ function resovlePromise(x, promise2, resovle, reject) {
       reject(error);
     }
   } else {
-    // 普通值直接resolve
+    // 普通值直接resolve promise2
     resovle(x);
   }
 
@@ -108,8 +108,10 @@ class Promise {
     // 实现穿透效果
     onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : v => v;
     onRejected = typeof onRejected === 'function' ? onRejected : err => { throw err };
-
+    
+    // 这是then方法要返回的新的Promise实例
     let promise2 = new Promise((resovle, reject) => {
+
       // 如果初始的promise resolve了
       if (this.status === ENUM.FULFILLED) {
         // 放到setTimeout中是因为resovlePromise时取不到promise2
@@ -126,6 +128,7 @@ class Promise {
           }
         }, 0);
       }
+
       if (this.status === ENUM.REJECTED) {
         setTimeout(() => {
           try {
@@ -136,7 +139,9 @@ class Promise {
           }
         }, 0);
       }
+
       if (this.status === ENUM.PENDING) {
+
         this.onFulfilledCallbacks.push(() => {
           setTimeout(() => {
             try {
@@ -147,6 +152,7 @@ class Promise {
             }
           }, 0);
         });
+
         this.onRejectedCallbacks.push(() => {
           setTimeout(() => {
             try {

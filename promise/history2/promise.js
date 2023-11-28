@@ -22,6 +22,8 @@ class Promise {
         this.onFulfilledCallbacks = [];
         // 存放then中失败的函数参数
         this.onRejectedCallbacks = [];
+        
+        // 定义resolve函数
         const resovle = (value) => {
             if (this.status === 'PENDING') {
                 this.status = ENUM.FULFILLED;
@@ -30,6 +32,8 @@ class Promise {
                 this.onFulfilledCallbacks.forEach(fn => fn());
             }
         }
+
+        // 定义reject函数
         const reject = (reason) => {
             if (this.status === 'PENDING') {
                 this.status = ENUM.REJECTED;
@@ -38,8 +42,10 @@ class Promise {
                 this.onRejectedCallbacks.forEach(fn => fn());
             }
         }
+
         // executor执行可能出错
         try {
+            // 执行传入的回调函数 Promise的状态让用户去操作
             executor(resovle, reject);
         } catch (error) {
             reject(error)
@@ -47,9 +53,12 @@ class Promise {
 
     }
     then(onFulfilled, onRejected) {
+        // 如果promise已经resolve了 就直接执行 then方法的成功的回调
         if (this.status === ENUM.FULFILLED) {
             onFulfilled(this.value);
         }
+
+        // 如果promise已经reject了 直接执行 then放的失败的回调
         if (this.status === ENUM.REJECTED) {
             onRejected(this.reason);
         }
@@ -61,7 +70,7 @@ class Promise {
                 onFulfilled(this.value);
             })
             this.onRejectedCallbacks.push(() => {
-                onRejected(this.value);
+                onRejected(this.reason);
             })
         }
     }
